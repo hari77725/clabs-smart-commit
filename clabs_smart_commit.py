@@ -87,6 +87,8 @@ def main() -> None:
     ## Get current git branch
     branch = get_current_branch()
 
+    print('Currently committing on branch: {}'.format(branch))
+
     if branch not in ["main", "master", "staging"]:
         print(
             f"Commits to {branch} not permitted. Please commit to feature branch and open PR."
