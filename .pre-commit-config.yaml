@@ -4,7 +4,7 @@ repos:
     -   id: clabs-smart-commit
         name: Auto smart commit for JIRA
         description: Automatically transform your Git commit messages into JIRA smart commits
-        entry: bash -c 'exec < /dev/tty; poetry run python clabs_smart_commit.py "$@"' --
+        entry: ./run_smart_commit.sh
         language: python
         stages: [prepare-commit-msg, commit-msg]
         always_run: true
