@@ -16,7 +16,9 @@ def run_command(command: str) -> Any:
 def extract_jira_issue_key(message: str) -> Optional[str]:
     """Extract the Jira issue key from a given string."""
     project_key = r"CCDP1"
-    match = re.search(rf"{project_key}-(\d+)", message, re.IGNORECASE)
+    match = re.search(
+        rf"{project_key}-(\d+)", message, re.IGNORECASE
+    )  # Case insensitive
     return match.group(0) if match else None
 
 
