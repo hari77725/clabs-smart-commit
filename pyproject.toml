@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "smart-commit"
+version = "0.1.0"
+description = "Smart commit tool"
+authors = ["hari77725 <harihara.sudhan@customerlabs.co>"]
+readme = "README.md"
+packages = [
+  { include = "clabs_smart_commit.py" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
