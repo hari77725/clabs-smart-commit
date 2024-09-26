@@ -24,7 +24,7 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     """Extract Jira commands from the commit message."""
     jira_issue_key = extract_jira_issue_key(commit_msg)
     time = extract_and_validate_time(commit_msg)
-    comment = extract_comment(commit_msg)
+    comment = extract_comment(commit_msg, time)
 
     return {
         "issue_key": jira_issue_key,
@@ -33,10 +33,30 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     }
 
 
-def extract_comment(commit_msg: str) -> Optional[str]:
-    """Extract the comment from the commit message."""
+def extract_comment(commit_msg: str, time_spent: Optional[str]) -> Optional[str]:
+    """Extract the comment from the commit message.
+
+    Args:
+        commit_msg (str): The full commit message.
+        time_spent (Optional[str]): The extracted time spent value.
+
+    Returns:
+        Optional[str]: The comment if present, or fallback to the message after time spent.
+    """
+    # First check if #comment is explicitly provided
     comment_match = re.search(r"#comment\s+(.+)", commit_msg)
-    return comment_match.group(1).strip() if comment_match else None
+    if comment_match:
+        return comment_match.group(1).strip()
+
+    # If no explicit #comment, use the remaining part of the message as the comment
+    # Assuming time is already extracted, we find the part after time
+    time_index = commit_msg.find(time_spent)
+    if time_index != -1:
+        # Everything after time spent until end or next command (if any)
+        comment_part = commit_msg[time_index + len(time_spent) :].strip()
+        return comment_part if comment_part else None
+
+    return None
 
 
 def extract_and_validate_time(commit_msg: str) -> Optional[str]:
