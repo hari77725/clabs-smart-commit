@@ -1,5 +1,5 @@
 repos:
-  - repo: https://github.com/hari77725/clabs-smart-commit
-    rev: v0.0.1
+  - repo: https://github.com/radix-ai/auto-smart-commit
+    rev: v1.0.3
     hooks:
-      - id: clabs_smart_commit
+      - id: auto-smart-commit
