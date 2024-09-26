@@ -87,7 +87,7 @@ def main() -> None:
     ## Get current git branch
     branch = get_current_branch()
 
-    print('Currently committing on branch: {}'.format(branch))
+    print("Currently committing on branch: {}".format(branch))
 
     if branch not in ["main", "master", "staging"]:
         print(
@@ -95,42 +95,51 @@ def main() -> None:
         )
         sys.exit(1)
 
-    jira_issue_key = extract_jira_issue_key(branch)
-    if not jira_issue_key:
-        sys.exit(0)
-
+    # Get commit message
     commit_msg_filepath = sys.argv[1]
     with open(commit_msg_filepath, "r") as f:
         commit_msg = f.read()
 
-    if "#time" not in commit_msg:
-        print("Error: Time spent is mandatory in the commit message.")
-        sys.exit(1)
+    print(f"Current commit message: {commit_msg}")
 
-    subject = commit_msg.split("#time")[
-        0
-    ].strip()  # Get everything before #time as the subject
-    time_spent = commit_msg.split("#time")[1].strip()  # Get everything after #time
-    time_spent = time_spent.split()[0]  # Extract only the time spent value
+    # jira_issue_key = extract_jira_issue_key(branch)
+    # if not jira_issue_key:
+    #     sys.exit(0)
 
-    comment = None
-    transition = None
-    if "#comment" in commit_msg:
-        comment = commit_msg.split("#comment")[1].strip().split()[0]
-    if "#transition" in commit_msg:
-        transition = commit_msg.split("#transition")[1].strip().split()[0]
+    # commit_msg_filepath = sys.argv[1]
+    # with open(commit_msg_filepath, "r") as f:
+    #     commit_msg = f.read()
 
-    # Format the commit message
-    formatted_commit_msg = format_commit_message(
-        subject, time_spent, comment, transition
-    )
+    # print(f"Current commit message {commit_msg}")
 
-    # Append the Jira issue key to the commit message
-    formatted_commit_msg = f"{jira_issue_key} {formatted_commit_msg}"
+    # if "#time" not in commit_msg:
+    #     print("Error: Time spent is mandatory in the commit message.")
+    #     sys.exit(1)
 
-    # Override commit message
-    with open(commit_msg_filepath, "w") as f:
-        f.write(formatted_commit_msg)
+    # subject = commit_msg.split("#time")[
+    #     0
+    # ].strip()  # Get everything before #time as the subject
+    # time_spent = commit_msg.split("#time")[1].strip()  # Get everything after #time
+    # time_spent = time_spent.split()[0]  # Extract only the time spent value
+
+    # comment = None
+    # transition = None
+    # if "#comment" in commit_msg:
+    #     comment = commit_msg.split("#comment")[1].strip().split()[0]
+    # if "#transition" in commit_msg:
+    #     transition = commit_msg.split("#transition")[1].strip().split()[0]
+
+    # # Format the commit message
+    # formatted_commit_msg = format_commit_message(
+    #     subject, time_spent, comment, transition
+    # )
+
+    # # Append the Jira issue key to the commit message
+    # formatted_commit_msg = f"{jira_issue_key} {formatted_commit_msg}"
+
+    # # Override commit message
+    # with open(commit_msg_filepath, "w") as f:
+    #     f.write(formatted_commit_msg)
 
 
 if __name__ == "__main__":
