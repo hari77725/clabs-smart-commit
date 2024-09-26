@@ -98,7 +98,7 @@ def extract_transition(commit_msg: str) -> Optional[str]:
     ]
 
     # Checking commit message
-    print(commit_msg)
+    print("Commit message", commit_msg)
 
     pattern = r"#(\w+)"  # Matches '# followed by one or more word characters'
     states = re.findall(pattern, commit_msg, re.IGNORECASE)
