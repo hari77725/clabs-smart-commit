@@ -97,6 +97,8 @@ def extract_transition(commit_msg: str) -> Optional[str]:
         "in_progress",
     ]
 
+    print(commit_msg)
+
     pattern = r"#(\w+)"  # Matches '# followed by one or more word characters'
     states = re.findall(pattern, commit_msg, re.IGNORECASE)
     states = list(map(str.lower, states))
