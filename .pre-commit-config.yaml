@@ -6,5 +6,5 @@ repos:
         description: Automatically transform your Git commit messages into JIRA smart commits
         entry: python clabs_smart_commit.py
         language: python
-        stages: [prepare-commit-msg]
+        stages: [prepare-commit-msg, commit-msg]
         always_run: true
