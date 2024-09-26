@@ -1,5 +1,10 @@
 repos:
-  - repo: https://github.com/radix-ai/auto-smart-commit
-    rev: v1.0.3
+  - repo: local
     hooks:
-      - id: auto-smart-commit
+    -   id: clabs-smart-commit
+        name: Auto smart commit for JIRA
+        description: Automatically transform your Git commit messages into JIRA smart commits
+        entry: python clabs_smart_commit.py
+        language: python
+        stages: [prepare-commit-msg]
+        always_run: true
