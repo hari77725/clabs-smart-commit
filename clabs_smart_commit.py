@@ -50,15 +50,9 @@ def extract_comment(commit_msg: str, time_spent: Optional[str]) -> Optional[str]
     if comment_match:
         return comment_match.group(1).strip()
 
-    # If no explicit #comment, use the remaining part of the message as the comment
-    # Assuming time is already extracted, we find the part after time
-    time_index = commit_msg.find(time_spent)
-    if time_index != -1:
-        # Everything after time spent until end or next command (if any)
-        comment_part = commit_msg[time_index + len(time_spent) :].strip()
-        return comment_part if comment_part else None
-
-    return None
+    # Fallback to everything after #time or issue key if #comment isn't present
+    comment_part = re.split(r"#time\s+\S+\s*|#\w+", commit_msg)[-1].strip()
+    return comment_part if comment_part else None
 
 
 def extract_and_validate_time(commit_msg: str) -> Optional[str]:
