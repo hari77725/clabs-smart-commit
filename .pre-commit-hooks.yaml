@@ -1,7 +1,7 @@
 -   id: clabs-smart-commit
     name: Auto smart commit for jira
     description: Automatically transform your Git commit messages into Jira smart commits
-    entry: clabs-smart-commit
+    entry: clabs_smart_commit
     language: python
     stages: [prepare-commit-msg]
     always_run: true
