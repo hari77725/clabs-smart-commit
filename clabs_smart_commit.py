@@ -97,15 +97,11 @@ def extract_transition(commit_msg: str) -> Optional[str]:
         "in_progress",
     ]
 
-    # Search for a transition that matches the allowed transitions
-    transition_match = re.search(r"#(\w+)", commit_msg)
+    pattern = r"#(\w+)"  # Matches '# followed by one or more word characters'
+    states = re.findall(pattern, commit_msg, re.IGNORECASE)
+    states = list(map(str.lower, states))
 
-    if transition_match:
-        extracted_transition = normalize_transition(transition_match.group(1))
-        if extracted_transition in allowed_transitions:
-            return extracted_transition
-
-    return None
+    return next((state for state in states if state in allowed_transitions), None)
 
 
 def is_valid_time_format(time_str: str) -> bool:
