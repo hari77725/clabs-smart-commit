@@ -5,6 +5,8 @@ from typing import Any, Optional
 from subprocess import check_output
 from InquirerPy import prompt
 
+sys.stdin = open("/dev/tty", "r")
+
 
 def run_command(command: str) -> Any:
     """Runs any command
@@ -140,7 +142,7 @@ def main() -> None:
     if os.isatty(0):  # Check if stdin is a terminal
         pass
     else:
-        sys.stdin = open("/dev/tty")
+        os.system("exec < /dev/tty")
 
     ## Get current git branch
     branch = get_current_branch()
@@ -160,8 +162,8 @@ def main() -> None:
 
     print(f"Current commit message: {commit_msg}")
 
-    ix = input("Enter commit message")
-    print(ix)
+    x = input("Inter issue number")
+    print("Issue number", x)
 
     # # Start interactive session
     # response = get_commit_message_interactively()
