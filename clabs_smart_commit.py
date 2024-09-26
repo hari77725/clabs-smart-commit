@@ -1,6 +1,6 @@
 import re
 import sys
-from typing import Any, Optional, Dict, Tuple
+from typing import Any, Optional, Dict
 from subprocess import check_output
 
 
@@ -23,8 +23,8 @@ def extract_jira_issue_key(message: str) -> Optional[str]:
 def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     """Extract Jira commands from the commit message."""
     jira_issue_key = extract_jira_issue_key(commit_msg)
-    time, comment = extract_and_validate_time(commit_msg)
-    time, comment = extract_and_validate_time(commit_msg)
+    time = extract_and_validate_time(commit_msg)
+    comment = extract_comment(commit_msg)
 
     return {
         "issue_key": jira_issue_key,
@@ -33,43 +33,17 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     }
 
 
-def extract_comment(commit_msg: str, time_spent: Optional[str]) -> Optional[str]:
-    """Extract the comment from the commit message.
-
-    Args:
-        commit_msg (str): The full commit message.
-        time_spent (Optional[str]): The extracted time spent value.
-
-    Returns:
-        Optional[str]: The comment if present, or a fallback.
-    """
-    # First check if an explicit #comment is provided
+def extract_comment(commit_msg: str) -> Optional[str]:
+    """Extract the comment from the commit message."""
     comment_match = re.search(r"#comment\s+(.+)", commit_msg)
-    if comment_match:
-        return comment_match.group(1).strip()
-
-    # If #comment is not present, consider everything after #time as comment
-    if time_spent:
-        time_pattern = re.escape(f"#time {time_spent}")
-        fallback_comment = re.sub(f".*{time_pattern}", "", commit_msg, count=1).strip()
-        return fallback_comment if fallback_comment else None
-
-    return None
+    return comment_match.group(1).strip() if comment_match else None
 
 
-def extract_and_validate_time(commit_msg: str) -> Tuple[Optional[str], Optional[str]]:
-    """Extracts and validates the time spent from a commit message
-
-    Args:
-        commit_msg (str): Git commit message given by the user
-
-    Raises:
-        ValueError: Raised if the commit message has invalid time format
-
-    Returns:
-        Tuple[Optional[str], Optional[str]]: Key-value pairs of the time spent
-    """
-    time_match = re.search(r"#time\s+(\S+)", commit_msg)
+def extract_and_validate_time(commit_msg: str) -> Optional[str]:
+    """Extract and validate the time spent from the commit message."""
+    time_match = re.search(
+        r"#time\s+(\S+(\s+\S+)*)", commit_msg
+    )  # Match #time followed by time components
     time_spent = time_match.group(1) if time_match else None
 
     if not time_spent or not is_valid_time_format(time_spent):
@@ -77,16 +51,12 @@ def extract_and_validate_time(commit_msg: str) -> Tuple[Optional[str], Optional[
             "Error: Invalid or missing time format. Expected formats: 2d, 30m, 1h, etc."
         )
 
-    # Extract the comment that may follow #time
-    comment_match = re.search(r"#time\s+\S+\s+(.*)", commit_msg)
-    comment = comment_match.group(1).strip() if comment_match else None
-
-    return time_spent, comment
+    return time_spent
 
 
 def is_valid_time_format(time_str: str) -> bool:
     """Check if the time format is valid according to smart commit standards."""
-    pattern = r"^\d+\s*[hdm](\s+\d+\s*[hdm])*$"
+    pattern = r"^\d+[hdm]"
     return bool(re.match(pattern, time_str))
 
 
@@ -104,7 +74,6 @@ def compose_smart_commit_message(
         str: Composed smart commit message.
     """
 
-    # Capitalize the first letter of the issue key and append time and comment
     base_message = f"{issue_key} #time {time}"
     if comment:
         base_message += f" #comment {comment}"
