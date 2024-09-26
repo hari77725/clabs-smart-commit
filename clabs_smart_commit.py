@@ -119,6 +119,8 @@ def main() -> None:
             print("Error: Time spent on issue is mandatory in the commit message.")
             sys.exit(1)
 
+        print(jira_commands)
+
         # Compose the smart commit message
         smart_commit_message = compose_smart_commit_message(
             jira_commands["issue_key"], jira_commands["time"], jira_commands["comment"]
