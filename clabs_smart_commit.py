@@ -24,12 +24,37 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     """Extract Jira commands from the commit message."""
     jira_issue_key = extract_jira_issue_key(commit_msg)
     time, comment = extract_and_validate_time(commit_msg)
+    time, comment = extract_and_validate_time(commit_msg)
 
     return {
         "issue_key": jira_issue_key,
         "time": time,
         "comment": comment,
     }
+
+
+def extract_comment(commit_msg: str, time_spent: Optional[str]) -> Optional[str]:
+    """Extract the comment from the commit message.
+
+    Args:
+        commit_msg (str): The full commit message.
+        time_spent (Optional[str]): The extracted time spent value.
+
+    Returns:
+        Optional[str]: The comment if present, or a fallback.
+    """
+    # First check if an explicit #comment is provided
+    comment_match = re.search(r"#comment\s+(.+)", commit_msg)
+    if comment_match:
+        return comment_match.group(1).strip()
+
+    # If #comment is not present, consider everything after #time as comment
+    if time_spent:
+        time_pattern = re.escape(f"#time {time_spent}")
+        fallback_comment = re.sub(f".*{time_pattern}", "", commit_msg, count=1).strip()
+        return fallback_comment if fallback_comment else None
+
+    return None
 
 
 def extract_and_validate_time(commit_msg: str) -> Tuple[Optional[str], Optional[str]]:
@@ -110,12 +135,12 @@ def main() -> None:
             jira_commands["issue_key"], jira_commands["time"], jira_commands["comment"]
         )
 
+        # Output the composed message for confirmation
+        print(f"Composed smart commit message: {smart_commit_message}")
+
         # Override commit message with the formatted smart commit message
         with open(commit_msg_filepath, "w") as f:
             f.write(smart_commit_message)
-
-        # Output the composed message for confirmation
-        print(f"Composed smart commit message: {smart_commit_message}")
 
     except ValueError as e:
         print(e)
