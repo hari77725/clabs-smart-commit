@@ -1,7 +1,9 @@
+import os
 import re
 import sys
 from typing import Any, Optional
 from subprocess import check_output
+from InquirerPy import prompt
 
 
 def run_command(command: str) -> Any:
@@ -82,7 +84,63 @@ def format_commit_message(
     return f"{formatted_subject} " + " ".join(jira_commands)
 
 
+def get_commit_message_interactively() -> dict:
+    """
+    Interactively prompt the user for commit message details.
+
+    Returns:
+        dict: The commit message details as a dictionary.
+    """
+
+    sys.stdin = open("/dev/tty")
+
+    questions = [
+        {
+            "type": "input",
+            "name": "subject",
+            "message": "Enter the JIRA issue key",
+            "validate": lambda x: len(x) > 0 or "Subject cannot be empty",
+        },
+        {
+            "type": "input",
+            "name": "time_spent",
+            "message": "Enter time spent (e.g., 1h, 30m):",
+            "validate": lambda x: re.match(r"^\d+[hmwd]$", x)
+            or "Invalid time format. Use 1h or 30m.",
+        },
+        {
+            "type": "input",
+            "name": "comment",
+            "message": "Enter a comment (optional):",
+            "default": "",
+        },
+        {
+            "type": "list",
+            "name": "transition",
+            "message": "Select a transition (optional):",
+            "choices": [
+                "In Progress",
+                "Testing Done",
+                "Peer Review",
+                "Review",
+                "Staging Approved",
+                "Staging Deployed",
+                "Production Done",
+                "Done",
+            ],
+            "default": "To Do",
+        },
+    ]
+
+    return prompt(questions)
+
+
 def main() -> None:
+
+    if os.isatty(0):  # Check if stdin is a terminal
+        pass
+    else:
+        sys.stdin = open("/dev/tty")
 
     ## Get current git branch
     branch = get_current_branch()
@@ -102,32 +160,16 @@ def main() -> None:
 
     print(f"Current commit message: {commit_msg}")
 
-    # jira_issue_key = extract_jira_issue_key(branch)
-    # if not jira_issue_key:
-    #     sys.exit(0)
+    ix = input("Enter commit message")
+    print(ix)
 
-    # commit_msg_filepath = sys.argv[1]
-    # with open(commit_msg_filepath, "r") as f:
-    #     commit_msg = f.read()
+    # # Start interactive session
+    # response = get_commit_message_interactively()
 
-    # print(f"Current commit message {commit_msg}")
-
-    # if "#time" not in commit_msg:
-    #     print("Error: Time spent is mandatory in the commit message.")
-    #     sys.exit(1)
-
-    # subject = commit_msg.split("#time")[
-    #     0
-    # ].strip()  # Get everything before #time as the subject
-    # time_spent = commit_msg.split("#time")[1].strip()  # Get everything after #time
-    # time_spent = time_spent.split()[0]  # Extract only the time spent value
-
-    # comment = None
-    # transition = None
-    # if "#comment" in commit_msg:
-    #     comment = commit_msg.split("#comment")[1].strip().split()[0]
-    # if "#transition" in commit_msg:
-    #     transition = commit_msg.split("#transition")[1].strip().split()[0]
+    # subject = response["subject"]
+    # time_spent = response["time_spent"]
+    # comment = response["comment"] or None
+    # transition = response["transition"] or None
 
     # # Format the commit message
     # formatted_commit_msg = format_commit_message(
@@ -135,11 +177,9 @@ def main() -> None:
     # )
 
     # # Append the Jira issue key to the commit message
-    # formatted_commit_msg = f"{jira_issue_key} {formatted_commit_msg}"
+    # final_commit_msg = f"{formatted_commit_msg}"
 
-    # # Override commit message
-    # with open(commit_msg_filepath, "w") as f:
-    #     f.write(formatted_commit_msg)
+    # print(f"\nFormatted commit message:\n{final_commit_msg}")
 
 
 if __name__ == "__main__":

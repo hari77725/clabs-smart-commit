@@ -10,6 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
+inquirerpy = "^0.3.4"
 
 [tool.poetry.scripts]
 clabs_smart_commit = "clabs_smart_commit:main"
