@@ -1,5 +1,6 @@
 repos:
-  - repo: local
+  - repo: https://github.com/hari77725/clabs-smart-commit
+    rev: v0.0.1
     hooks:
     -   id: clabs-smart-commit
         name: Auto smart commit for JIRA
