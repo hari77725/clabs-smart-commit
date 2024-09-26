@@ -165,6 +165,9 @@ def main() -> None:
     x = input("Inter issue number")
     print("Issue number", x)
 
+    x = input("Enter time spent")
+    print("Time spent", x)
+
     # # Start interactive session
     # response = get_commit_message_interactively()
 
