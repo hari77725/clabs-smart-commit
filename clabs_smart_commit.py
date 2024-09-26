@@ -25,11 +25,13 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     jira_issue_key = extract_jira_issue_key(commit_msg)
     time = extract_and_validate_time(commit_msg)
     comment = extract_comment(commit_msg, time)
+    transition = extract_transition(commit_msg)
 
     return {
         "issue_key": jira_issue_key,
         "time": time,
         "comment": comment,
+        "transition": transition,
     }
 
 
