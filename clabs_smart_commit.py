@@ -74,6 +74,42 @@ def extract_and_validate_time(commit_msg: str) -> Optional[str]:
     return time_spent
 
 
+def normalize_transition(transition: str) -> str:
+    """Normalize transition to lowercase and replace spaces with underscores."""
+    return transition.lower().replace(" ", "_")
+
+
+def extract_transition(commit_msg: str) -> Optional[str]:
+    """Extract the transition action from the commit message.
+
+    Args:
+        commit_msg (str): The full commit message.
+
+    Returns:
+        Optional[str]: The transition action if present.
+    """
+    # Define allowed transitions
+    allowed_transitions = [
+        "start",
+        "stop",
+        "pause",
+        "review",
+        "done",
+        "peer_reviewed",
+        "in_progress",
+    ]
+
+    # Search for a transition that matches the allowed transitions
+    transition_match = re.search(r"#(\w+)", commit_msg)
+
+    if transition_match:
+        extracted_transition = normalize_transition(transition_match.group(1))
+        if extracted_transition in allowed_transitions:
+            return extracted_transition
+
+    return None
+
+
 def is_valid_time_format(time_str: str) -> bool:
     """Check if the time format is valid according to smart commit standards."""
     pattern = r"^\d+[hdm]"
