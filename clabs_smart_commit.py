@@ -101,12 +101,7 @@ def extract_transition(commit_msg: str) -> Optional[str]:
     states = re.findall(pattern, commit_msg, re.IGNORECASE)
     states = list(map(str.lower, states))
 
-    # Return the first occurrence of an allowed state
-    for state in states:
-        if state in allowed_transitions:
-            return state
-
-    return None  #
+    print(states)
 
 
 def is_valid_time_format(time_str: str) -> bool:
