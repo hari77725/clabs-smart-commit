@@ -63,7 +63,7 @@ def extract_and_validate_time(commit_msg: str) -> Optional[str]:
     """Extract and validate the time spent from the commit message."""
     time_match = re.search(
         r"#time\s+(\d+\s*[hdm](?:\s+\d+\s*[hdm])*)", commit_msg
-    )  # time followed by time components
+    )  # Get time components only
     time_spent = time_match.group(1) if time_match else None
 
     if not time_spent or not is_valid_time_format(time_spent):
