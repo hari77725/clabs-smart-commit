@@ -105,7 +105,12 @@ def extract_transition(commit_msg: str) -> Optional[str]:
     )  # Matches '# followed by one or more word characters'
     states = list(map(str.lower, states))
 
-    print(states)
+    # Return the first match that is in allowed transitions
+    for state in states:
+        if state in allowed_transitions:
+            return state
+
+    return None
 
 
 def is_valid_time_format(time_str: str) -> bool:
