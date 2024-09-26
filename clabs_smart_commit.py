@@ -48,7 +48,7 @@ def extract_and_validate_time(commit_msg: str) -> Optional[str]:
 
     if not time_spent or not is_valid_time_format(time_spent):
         raise ValueError(
-            "Error: Invalid or missing time format. Expected formats: 2d, 30m, 1h, etc."
+            "Error: Invalid or missing time format. Expected formats: 2d, 30m, 1h, 2h 30m ,etc."
         )
 
     return time_spent
