@@ -12,7 +12,7 @@ packages = [
 python = "^3.12"
 
 [tool.poetry.scripts]
-clabs-smart-commit = "clabs_smart_commit:main"
+clabs_smart_commit = "clabs_smart_commit:main"
 
 [build-system]
 requires = ["poetry-core"]
