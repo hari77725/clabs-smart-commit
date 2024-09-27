@@ -1,10 +1,10 @@
 repos:
-  - repo: local
+  - repo: https://github.com/hari77725/clabs-smart-commit
     hooks:
     -   id: clabs-smart-commit
         name: Auto smart commit for JIRA
         description: Automatically transform your Git commit messages into JIRA smart commits
-        entry: ./run_smart_commit.sh
+        entry: python clabs_smart_commit.py
         language: python
         stages: [prepare-commit-msg, commit-msg]
         always_run: true
