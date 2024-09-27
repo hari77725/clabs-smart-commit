@@ -88,15 +88,15 @@ def extract_transition(commit_msg: str) -> Optional[str]:
     """
     # Define allowed transitions
     allowed_transitions = [
-        "to_do",
-        "testing_done",
-        "staging_deployed",
-        "staging_approved",
+        "to-do",
+        "testing-done",
+        "staging-deployed",
+        "staging-approved",
         "review",
-        "production_deployed",
+        "production-deployed",
         "done",
-        "peer_review",
-        "in_progress",
+        "peer-review",
+        "in-progress",
     ]
 
     # Checking commit message
