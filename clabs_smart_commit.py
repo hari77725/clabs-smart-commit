@@ -19,7 +19,7 @@ def extract_jira_issue_key(message: str) -> Optional[str]:
     match = re.search(
         rf"{project_key}-(\d+)", message, re.IGNORECASE
     )  # Case insensitive
-    return match.group(0) if match else None
+    return match.group(0).upper() if match else None
 
 
 def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
@@ -88,12 +88,14 @@ def extract_transition(commit_msg: str) -> Optional[str]:
     """
     # Define allowed transitions
     allowed_transitions = [
-        "start",
-        "stop",
-        "pause",
+        "to_do",
+        "testing_done",
+        "staging_deployed",
+        "staging_approved",
         "review",
+        "production_deployed",
         "done",
-        "peer_reviewed",
+        "peer_review",
         "in_progress",
     ]
 
@@ -120,7 +122,10 @@ def is_valid_time_format(time_str: str) -> bool:
 
 
 def compose_smart_commit_message(
-    issue_key: str, time: str, comment: Optional[str] = None
+    issue_key: str,
+    time: str,
+    comment: Optional[str] = None,
+    transition: Optional[str] = None,
 ) -> str:
     """Compose smart commit message b
 
@@ -128,6 +133,7 @@ def compose_smart_commit_message(
         issue_key (str): The issue key for issue
         time (str): Time spent on issue
         comment (Optional[str], optional): Additional comments on the issue. Defaults to None.
+        transition (Optional[str], optional): Transition action. Defaults to None.
 
     Returns:
         str: Composed smart commit message.
@@ -136,6 +142,8 @@ def compose_smart_commit_message(
     base_message = f"{issue_key} #time {time}"
     if comment:
         base_message += f" #comment {comment}"
+    if transition:
+        base_message += f" #{transition}"
     return base_message
 
 
@@ -162,7 +170,10 @@ def main() -> None:
 
         # Compose the smart commit message
         smart_commit_message = compose_smart_commit_message(
-            jira_commands["issue_key"], jira_commands["time"], jira_commands["comment"]
+            jira_commands["issue_key"],
+            jira_commands["time"],
+            jira_commands["comment"],
+            jira_commands["transition"],
         )
 
         # Output the composed message for confirmation
