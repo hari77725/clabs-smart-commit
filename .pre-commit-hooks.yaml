@@ -1,7 +1,7 @@
 -   id: clabs-smart-commit
     name: Smart commit feature for Jira
     description: Checks whether commits are jira smart commits
-    entry: python clabs_smart_commit.py
+    entry: clabs_smart_commit
     language: python
     stages: [prepare-commit-msg,commit-msg]
     always_run: true
