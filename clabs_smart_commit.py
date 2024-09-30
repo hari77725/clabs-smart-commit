@@ -142,9 +142,10 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     issue_data = response.json()
 
     incomplete_issues: List[str] = []
+    is_subtask = issue_data["fields"]["issuetype"]["subtask"]
 
     # Check if the issue is a parent task
-    if "subtasks" in issue_data["fields"] and issue_data["fields"]["subtasks"]:
+    if not is_subtask and len(issue_data["fields"]["subtasks"]) > 0:
 
         # Check the status of all subtasks
         for subtask in issue_data["fields"]["subtasks"]:
@@ -160,15 +161,16 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
             )
             sys.exit(1)  # Block the transition if any subtasks are not done
 
-    if "customfield_10700" not in issue_data["fields"] or not issue_data["fields"]["customfield_10700"]:
-        print("Start date not set. Please update start date for the parent task and try again.")
-        sys.exit(1)
+    if not subtask:
+        if "customfield_10700" not in issue_data["fields"] or not issue_data["fields"]["customfield_10700"]:
+            print("Start date not set. Please update start date for the parent task and try again.")
+            sys.exit(1)
 
-    if "customfield_10751" not in issue_data["fields"] or not issue_data["fields"]["customfield_10751"]:
-        print("End date not set. Please update end date for the parent task and try again.")
-        sys.exit(1)
+        if "customfield_10751" not in issue_data["fields"] or not issue_data["fields"]["customfield_10751"]:
+            print("End date not set. Please update end date for the parent task and try again.")
+            sys.exit(1)
 
-        
+
     states = re.findall(
         r"#(\w+)", commit_msg, re.IGNORECASE
     )  # Matches '# followed by one or more word characters'
