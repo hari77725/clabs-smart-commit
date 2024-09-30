@@ -124,29 +124,23 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     # Get issue details
     url = f"https://customerlabs.atlassian.net/rest/api/3/issue/{issue_key}"
 
-    auth = HTTPBasicAuth(
-        jira_email,
-        jira_api_token,
-    )
+    auth = HTTPBasicAuth(jira_email, jira_api_token)
 
     headers = {"Accept": "application/json"}
 
     response = requests.request("GET", url, headers=headers, auth=auth)
 
     if response.status_code != 200:
-        print(
-            f"Error: Failed to fetch issue details.{response.json().get("errorMessages")}"
-        )
+        print(f"Error: Failed to fetch issue details. {response.json().get('errorMessages')}")
         sys.exit(1)
 
     issue_data = response.json()
 
     incomplete_issues: List[str] = []
-    is_subtask = issue_data["fields"]["issuetype"]["subtask"]
 
     # Check if the issue is a parent task
+    is_subtask = issue_data["fields"]["issuetype"]["subtask"]
     if not is_subtask and len(issue_data["fields"]["subtasks"]) > 0:
-
         # Check the status of all subtasks
         for subtask in issue_data["fields"]["subtasks"]:
             subtask_key = subtask["key"]
@@ -161,14 +155,25 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
             )
             sys.exit(1)  # Block the transition if any subtasks are not done
 
-    if not subtask:
-        if "customfield_10700" not in issue_data["fields"] or not issue_data["fields"]["customfield_10700"]:
+    # If it's not a subtask, check if start date and end date are present
+    if not is_subtask:
+        if not issue_data["fields"].get("customfield_10700"):  # 700 is start date
             print("Start date not set. Please update start date for the parent task and try again.")
-            sys.exit(1)
+            sys.exit(1)  # Block the transition if start date is not set
 
-        if "customfield_10751" not in issue_data["fields"] or not issue_data["fields"]["customfield_10751"]:
+        if not issue_data["fields"].get("customfield_10751"):  # 751 is completed at
             print("End date not set. Please update end date for the parent task and try again.")
-            sys.exit(1)
+            sys.exit(1)  # Block the transition if end date is not set
+
+    states = re.findall(r"#(\w+)", commit_msg, re.IGNORECASE)  # Matches '# followed by one or more word characters'
+    states = list(map(str.lower, states))
+
+    # Return the first match that is in allowed transitions
+    for state in states:
+        if state in allowed_transitions:
+            return state
+
+    return None
 
 
     states = re.findall(
