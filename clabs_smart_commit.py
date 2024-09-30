@@ -1,6 +1,9 @@
 import re
 import sys
-from typing import Any, Optional, Dict
+import os
+import requests
+from requests.auth import HTTPBasicAuth
+from typing import Any, List, Optional, Dict
 from subprocess import check_output
 
 
@@ -11,6 +14,10 @@ def run_command(command: str) -> Any:
     except Exception:
         stdout = ""
     return stdout
+
+
+def get_branch() -> str:
+    return run_command("git symbolic-ref --short HEAD")
 
 
 def extract_jira_issue_key(message: str) -> Optional[str]:
@@ -27,7 +34,7 @@ def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
     jira_issue_key = extract_jira_issue_key(commit_msg)
     time = extract_and_validate_time(commit_msg)
     comment = extract_comment(commit_msg, time)
-    transition = extract_transition(commit_msg)
+    transition = extract_transition(commit_msg, jira_issue_key)
 
     return {
         "issue_key": jira_issue_key,
@@ -77,30 +84,71 @@ def normalize_transition(transition: str) -> str:
     return transition.lower().replace(" ", "_")
 
 
-def extract_transition(commit_msg: str) -> Optional[str]:
+def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     """Extract the transition action from the commit message.
 
     Args:
         commit_msg (str): The full commit message.
+        issue_key (str): The extracted issue key.
 
     Returns:
         Optional[str]: The transition action if present.
     """
     # Define allowed transitions
     allowed_transitions = [
-        "to-do",
-        "testing-done",
-        "staging-deployed",
-        "staging-approved",
+        "to_do",
+        "testing_done",
+        "staging_deployed",
+        "staging_approved",
         "review",
-        "production-deployed",
+        "production_deployed",
         "done",
-        "peer-review",
-        "in-progress",
+        "peer_review",
+        "in_progress",
     ]
 
-    # Checking commit message
-    print("Commit message", commit_msg)
+    jira_email = os.getenv("JIRA_EMAIL")
+    jira_api_token = os.getenv("JIRA_API_TOKEN")
+
+    # Get issue details
+    url = f"https://customerlabs.atlassian.net/rest/api/3/issue/{issue_key}"
+
+    auth = HTTPBasicAuth(
+        jira_email,
+        jira_api_token,
+    )
+
+    headers = {"Accept": "application/json"}
+
+    response = requests.request("GET", url, headers=headers, auth=auth)
+
+    if response.status_code != 200:
+        print(
+            f"Error: Failed to fetch issue details. Please check auth token and try again."
+        )
+        sys.exit(1)
+
+    issue_data = response.json()
+
+    incomplete_issues: List[str] = []
+
+    # Check if the issue is a parent task
+    if not issue_data["fields"]["issuetype"]["subtask"] and len(
+        issue_data["fields"]["subtasks"]
+    ):
+        # Check the status of all subtasks
+        for subtask in issue_data["fields"]["subtasks"]:
+            subtask_key = subtask["key"]
+            subtask_status = subtask["fields"]["status"]["statusCategory"]["key"]
+
+            if subtask_status != "done":
+                incomplete_issues.append(subtask_key)
+
+        if incomplete_issues:
+            print(
+                f"Error: Subtasks not done: {', '.join(incomplete_issues)}. Complete subtasks before moving parent task to done."
+            )
+            sys.exit(1)  # Block the transition if any subtasks are not done
 
     states = re.findall(
         r"#(\w+)", commit_msg, re.IGNORECASE
@@ -148,8 +196,38 @@ def compose_smart_commit_message(
 
 
 def main() -> None:
+
+    # Check if API key and email ids are present for JIRA
+
+    jira_email = os.getenv("JIRA_EMAIL")
+    jira_api_token = os.getenv("JIRA_API_TOKEN")
+
+    if not jira_email:
+        print(
+            "Error: JIRA_EMAIL environment variable is not set.\n"
+            "Please set your JIRA email ID in .bashrc or .zshrc:\n"
+        )
+        sys.exit(1)
+
+    if not jira_api_token:
+        print(
+            "Error: JIRA_API_TOKEN environment variable is not set.\n"
+            "Visit the following link to generate an API token:\n"
+            "https://id.atlassian.com/manage-profile/security/api-tokens \n"
+            "Once generated, set it as an environment variable in .bashrc or .zshrc\n"
+        )
+        sys.exit(1)
+
     # Commit message file path from arguments
     commit_msg_filepath = sys.argv[1]
+
+    branch = get_branch()
+
+    if branch in ["master", "main"] or branch.startswith(("staging", "production")):
+        print(
+            f"Error: You're trying to commit directly to a restricted branch. Pushes to {branch} is prohibited. Please commit to a feature branch and open a PR"
+        )
+        sys.exit(1)
 
     try:
         with open(commit_msg_filepath, "r") as f:
@@ -164,6 +242,14 @@ def main() -> None:
 
         if not jira_commands["time"]:
             print("Error: Time spent on issue is mandatory in the commit message.")
+            sys.exit(1)
+
+        if not jira_commands["comment"]:
+            print("Error: Comment is mandatory in the commit message.")
+            sys.exit(1)
+
+        if not jira_commands["transition"]:
+            print("Error: Transition action is mandatory in the commit message.")
             sys.exit(1)
 
         print(jira_commands)
