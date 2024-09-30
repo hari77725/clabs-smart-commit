@@ -112,6 +112,7 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
 
     print(jira_email)
     print(jira_api_token)
+    print(issue_key)
 
     # Get issue details
     url = f"https://customerlabs.atlassian.net/rest/api/3/issue/{issue_key}"
