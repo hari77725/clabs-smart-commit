@@ -110,6 +110,9 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     jira_email = os.getenv("JIRA_EMAIL")
     jira_api_token = os.getenv("JIRA_API_TOKEN")
 
+    print(jira_email)
+    print(jira_api_token)
+
     # Get issue details
     url = f"https://customerlabs.atlassian.net/rest/api/3/issue/{issue_key}"
 
