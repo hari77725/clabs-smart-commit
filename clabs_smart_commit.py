@@ -145,7 +145,7 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
 
     # Check if the issue is a parent task
     if not issue_data["fields"]["issuetype"]["subtask"] and len(
-        issue_data["fields"]["subtasks"] > 0
+        issue_data["fields"]["subtasks"]) > 0
     ):
         # Check the status of all subtasks
         for subtask in issue_data["fields"]["subtasks"]:
