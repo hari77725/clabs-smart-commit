@@ -23,10 +23,12 @@ def get_branch() -> str:
 def extract_jira_issue_key(message: str) -> Optional[str]:
     """Extract the Jira issue key from a given string."""
     project_key = r"CCDP1"
-    match = re.search(
-        rf"{project_key}-(\d+)", message, re.IGNORECASE
-    )  # Case insensitive
-    return match.group(0).upper() if match else None
+    if match:
+        print(f"Extracted Jira Issue Key: {match.group(0)}")  # Debug output
+        return match.group(0).upper()
+    else:
+        print(f"Failed to extract Jira Issue Key from message: {message}")  # Debug output
+        return None
 
 
 def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
