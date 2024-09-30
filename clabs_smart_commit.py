@@ -22,14 +22,11 @@ def get_branch() -> str:
 
 def extract_jira_issue_key(message: str) -> Optional[str]:
     """Extract the Jira issue key from a given string."""
-    project_key = r"CCDP1"  # Ensure this matches your actual Jira project key
-    match = re.search(rf"{project_key}-(\d+)", message, re.IGNORECASE)
-    if match:
-        print(f"Extracted Jira Issue Key: {match.group(0)}")  # Debug output
-        return match.group(0).upper()
-    else:
-        print(f"Failed to extract Jira Issue Key from message: {message}")  # Debug output
-        return None
+    project_key = r"CCDP1"
+    match = re.search(
+        rf"{project_key}-(\d+)", message, re.IGNORECASE
+    )  # Case insensitive
+    return match.group(0).upper() if match else None
 
 
 def extract_jira_commands(commit_msg: str) -> Dict[str, Optional[str]]:
@@ -68,7 +65,18 @@ def extract_comment(commit_msg: str, time_spent: Optional[str]) -> Optional[str]
 
 
 def extract_and_validate_time(commit_msg: str) -> Optional[str]:
-    """Extract and validate the time spent from the commit message."""
+    """Extract time and validates the format
+
+    Args:
+        commit_msg (str): Commit message to extract time from
+
+    Raises:
+        ValueError: Raised if commit_msg has invalid time format
+
+    Returns:
+        Optional[str]: Time spent
+    """
+
     time_match = re.search(
         r"#time\s+(\d+\s*[hdm](?:\s+\d+\s*[hdm])*)", commit_msg
     )  # Get time components only
@@ -113,10 +121,6 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     jira_email = os.getenv("JIRA_EMAIL")
     jira_api_token = os.getenv("JIRA_API_TOKEN")
 
-    print(jira_email)
-    print(jira_api_token)
-    print(issue_key)
-
     # Get issue details
     url = f"https://customerlabs.atlassian.net/rest/api/3/issue/{issue_key}"
 
@@ -131,9 +135,8 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
 
     if response.status_code != 200:
         print(
-            f"Error: Failed to fetch issue details. Please check auth token and try again."
+            f"Error: Failed to fetch issue details.{response.json().get("errorMessages")}"
         )
-        print(response.json())
         sys.exit(1)
 
     issue_data = response.json()
@@ -157,6 +160,20 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
                 f"Error: Subtasks not done: {', '.join(incomplete_issues)}. Complete subtasks before moving parent task to done."
             )
             sys.exit(1)  # Block the transition if any subtasks are not done
+
+    # If all subtasks are done, check if start date and end date are present
+    if (
+        not issue_data["fields"]["customfield_10700"] # 700 is start date
+    ):
+
+        # Notify the user that they need to update start date and end date for the parent task
+        print("Start date not set. Please update start date for the parent task and try again.")
+        sys.exit(1) # Block the transition if start date and end date are not set
+
+    elif not issue_data["fields"]["customfield_10751"]: #751 is completed at
+        # Notify the user that they need to update end date for the parent task
+        print("End date not set. Please update end date for the parent task and try again.")
+        sys.exit(1)  # Block the transition if end date is not set
 
     states = re.findall(
         r"#(\w+)", commit_msg, re.IGNORECASE
@@ -213,7 +230,7 @@ def main() -> None:
     if not jira_email:
         print(
             "Error: JIRA_EMAIL environment variable is not set.\n"
-            "Please set your JIRA email ID in .bashrc or .zshrc:\n"
+            "Please set your JIRA email ID in .bashrc or .zshrc \n"
         )
         sys.exit(1)
 
@@ -222,7 +239,7 @@ def main() -> None:
             "Error: JIRA_API_TOKEN environment variable is not set.\n"
             "Visit the following link to generate an API token:\n"
             "https://id.atlassian.com/manage-profile/security/api-tokens \n"
-            "Once generated, set it as an environment variable in .bashrc or .zshrc\n"
+            "Once generated, set it as an environment variable in .bashrc or .zshrc \n"
         )
         sys.exit(1)
 
