@@ -22,7 +22,8 @@ def get_branch() -> str:
 
 def extract_jira_issue_key(message: str) -> Optional[str]:
     """Extract the Jira issue key from a given string."""
-    project_key = r"CCDP1"
+    project_key = r"CCDP1"  # Ensure this matches your actual Jira project key
+    match = re.search(rf"{project_key}-(\d+)", message, re.IGNORECASE)
     if match:
         print(f"Extracted Jira Issue Key: {match.group(0)}")  # Debug output
         return match.group(0).upper()
