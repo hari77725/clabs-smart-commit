@@ -126,6 +126,7 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
         print(
             f"Error: Failed to fetch issue details. Please check auth token and try again."
         )
+        print(response.json())
         sys.exit(1)
 
     issue_data = response.json()
