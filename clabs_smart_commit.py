@@ -16,6 +16,10 @@ def run_command(command: str) -> Any:
     return stdout
 
 
+def is_merge_operation() -> bool:
+    """Check if a merge is in progress by looking for .git/MERGE_HEAD."""
+    return os.path.exists(".git/MERGE_HEAD")
+
 def get_branch() -> str:
     return run_command("git symbolic-ref --short HEAD")
 
@@ -131,7 +135,9 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     response = requests.request("GET", url, headers=headers, auth=auth)
 
     if response.status_code != 200:
-        print(f"Error: Failed to fetch issue details. {response.json().get('errorMessages')}")
+        print(
+            f"Error: Failed to fetch issue details. {response.json().get('errorMessages')}"
+        )
         sys.exit(1)
 
     issue_data = response.json()
@@ -158,23 +164,16 @@ def extract_transition(commit_msg: str, issue_key: str) -> Optional[str]:
     # If it's not a subtask, check if start date and end date are present
     if not is_subtask:
         if not issue_data["fields"].get("customfield_10700"):  # 700 is start date
-            print("Start date not set. Please update start date for the parent task and try again.")
+            print(
+                "Start date not set. Please update start date for the parent task and try again."
+            )
             sys.exit(1)  # Block the transition if start date is not set
 
         if not issue_data["fields"].get("customfield_10751"):  # 751 is completed at
-            print("End date not set. Please update end date for the parent task and try again.")
+            print(
+                "End date not set. Please update end date for the parent task and try again."
+            )
             sys.exit(1)  # Block the transition if end date is not set
-
-    states = re.findall(r"#(\w+)", commit_msg, re.IGNORECASE)  # Matches '# followed by one or more word characters'
-    states = list(map(str.lower, states))
-
-    # Return the first match that is in allowed transitions
-    for state in states:
-        if state in allowed_transitions:
-            return state
-
-    return None
-
 
     states = re.findall(
         r"#(\w+)", commit_msg, re.IGNORECASE
@@ -247,13 +246,14 @@ def main() -> None:
     # Commit message file path from arguments
     commit_msg_filepath = sys.argv[1]
 
-    branch = get_branch()
+    if not is_merge_operation():
+        branch = get_branch()
 
-    if branch in ["master", "main"] or branch.startswith(("staging", "production")):
-        print(
-            f"Error: You're trying to commit directly to a restricted branch. Pushes to {branch} is prohibited. Please commit to a feature branch and open a PR"
-        )
-        sys.exit(1)
+        if branch in ["master", "main"] or branch.startswith(("staging", "production")):
+            print(
+                f"Error: You're trying to commit directly to a restricted branch. Pushes to {branch} is prohibited. Please commit to a feature branch and open a PR"
+            )
+            sys.exit(1)
 
     try:
         with open(commit_msg_filepath, "r") as f:
